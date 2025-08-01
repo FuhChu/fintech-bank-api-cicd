@@ -1,15 +1,21 @@
 #!/bin/bash
 
-# Install Docker
+# Install Docker (if not already installed)
 sudo apt update
 sudo apt install -y docker.io
 sudo systemctl enable docker
 sudo usermod -aG docker ubuntu
 
-# Pull Jenkins
+# Pull Jenkins image
 docker pull jenkins/jenkins:lts
 
-# Run Jenkins
+# Stop and remove existing Jenkins container if it exists
+if docker ps -a --format '{{.Names}}' | grep -Eq "^jenkins$"; then
+  echo "⚠️ Removing existing Jenkins container..."
+  docker stop jenkins
+  docker rm jenkins
+fi
+
 # Run Jenkins with Docker socket access
 docker run -d --name jenkins \
   -p 8080:8080 -p 50000:50000 \
@@ -18,17 +24,18 @@ docker run -d --name jenkins \
   -u root \
   jenkins/jenkins:lts
 
-# Output unlock password
-echo "Waiting for Jenkins to be ready..."
-
-for i in {1..30}; do
+# Wait for Jenkins to initialize and create password file
+echo "⏳ Waiting for Jenkins to be ready..."
+for i in {1..60}; do
   if docker exec jenkins test -f /var/jenkins_home/secrets/initialAdminPassword; then
     echo "✅ Jenkins is ready!"
-    break
+    echo "🔑 Jenkins Initial Password:"
+    docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+    exit 0
   fi
-  echo "⏳ Jenkins not ready yet... ($i/30)"
+  echo "…still waiting ($i/60)"
   sleep 3
 done
 
-echo "Jenkins Initial Password:"
-docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+echo "❌ Timeout reached. Jenkins did not initialize in time."
+exit 1
