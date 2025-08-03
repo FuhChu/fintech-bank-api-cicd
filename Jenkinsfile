@@ -49,3 +49,6 @@ pipeline {
             steps {
                 echo 'Deployment logic would go here.'
             }
+        }
+    }
+}
