@@ -49,7 +49,7 @@ pipeline {
             steps {
                 sshagent(['ec2-key']) {
                     sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@EC2_PUBLIC_IP '
+                    ssh -o StrictHostKeyChecking=no ubuntu@98.80.232.248 '
                         aws ecr get-login-password --region us-east-1 | \
                         docker login --username AWS --password-stdin 381491832980.dkr.ecr.us-east-1.amazonaws.com &&
                         docker pull 381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest &&
