@@ -54,7 +54,7 @@ pipeline {
                         docker login --username AWS --password-stdin 381491832980.dkr.ecr.us-east-1.amazonaws.com &&
                         docker pull 381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest &&
                         docker rm -f fintech-api || true &&
-                        docker run -d --name fintech-api -p 3000:3000 \
+                        docker run -d --name fintech-api -p 3000:5000 \
                         381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest
                     '
                     '''
