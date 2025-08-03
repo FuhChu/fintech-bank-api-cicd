@@ -26,6 +26,7 @@ echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] \
 echo "📦 Installing Jenkins..."
 sudo apt update
 sudo apt install -y jenkins
+sudo usermod -aG docker jenkins
 
 echo "🚀 Starting Jenkins service..."
 sudo systemctl enable --now jenkins
