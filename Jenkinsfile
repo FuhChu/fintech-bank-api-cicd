@@ -25,6 +25,7 @@ pipeline {
             steps {
                 script {
                     sh 'docker run --rm -v /var/lib/jenkins/workspace/fintech-bank-api-cicd/app:/app -w /app fintech-api python3 -m unittest discover -s .'
+                }
             }
         }
 
