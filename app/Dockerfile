@@ -1,4 +1,3 @@
-# Dockerfile (inside app/)
 FROM python:3.10-slim
 
 WORKDIR /app
@@ -6,8 +5,5 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-COPY app.py .           # already exists
-COPY tests/ ./tests/    # ✅ add this line
-
-EXPOSE 5000
+COPY . .  # copies app.py and test_app.py
 CMD ["python", "app.py"]
