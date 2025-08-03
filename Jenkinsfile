@@ -45,9 +45,20 @@ pipeline {
             }
         }
 
-        stage('Deploy (Placeholder)') {
+        stage('Deploy to EC2') {
             steps {
-                echo 'Deployment logic would go here.'
+                sshagent(['ec2-key']) {
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@EC2_PUBLIC_IP '
+                        aws ecr get-login-password --region us-east-1 | \
+                        docker login --username AWS --password-stdin 381491832980.dkr.ecr.us-east-1.amazonaws.com &&
+                        docker pull 381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest &&
+                        docker rm -f fintech-api || true &&
+                        docker run -d --name fintech-api -p 3000:3000 \
+                        381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest
+                    '
+                    '''
+                }
             }
         }
     }
