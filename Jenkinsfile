@@ -47,17 +47,26 @@ pipeline {
 
         stage('Deploy to EC2') {
             steps {
+                // Get the ECR login password on the Jenkins agent, where the AWS credentials are
+                def ecrPassword = sh(returnStdout: true, script: 'aws ecr get-login-password --region us-east-1').trim()
+
                 sshagent(['ec2-key']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@98.80.232.248 '
-                        aws ecr get-login-password --region us-east-1 | \
-                        docker login --username AWS --password-stdin 381491832980.dkr.ecr.us-east-1.amazonaws.com &&
-                        docker pull 381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest &&
-                        docker rm -f fintech-api || true &&
-                        docker run -d --name fintech-api -p 3000:5000 \
+                    // Use a HERE-string for multiline command execution on the remote server
+                    // This is more robust than a single, chained command.
+                    sh """
+                        # Login to ECR on the remote host using the password from the Jenkins agent
+                        docker login --username AWS --password-stdin 381491832980.dkr.ecr.us-east-1.amazonaws.com <<< ${ecrPassword}
+
+                        # Pull the latest image
+                        docker pull 381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest
+
+                        # Stop and remove the old container, ignoring any errors if it doesn't exist
+                        docker rm -f fintech-api || true
+
+                        # Run the new container, mapping host port 3000 to container port 5000
+                        docker run -d --name fintech-api -p 3000:5000 \\
                         381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest
-                    '
-                    '''
+                    """
                 }
             }
         }
