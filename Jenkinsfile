@@ -24,7 +24,7 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    docker run --rm -v /var/lib/jenkins/workspace/fintech-bank-api-cicd/app:/app -w /app fintech-api python3 -m unittest discover -s .
+                    sh 'docker run --rm -v /var/lib/jenkins/workspace/fintech-bank-api-cicd/app:/app -w /app fintech-api python3 -m unittest discover -s .'
             }
         }
 
