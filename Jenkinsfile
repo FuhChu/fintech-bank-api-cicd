@@ -43,6 +43,24 @@ pipeline {
                 }
             }
         }
+        stage('Push to ECR') {
+            steps {
+                withCredentials([
+                string(credentialsId: 'ecr-login-script', variable: 'ECR_LOGIN_SCRIPT'),
+                [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
+            ]) {
+            script {
+                // Login to ECR
+                sh "$ECR_LOGIN_SCRIPT"
+
+                // Tag and push image
+                def ecrRepo = "381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api"
+                sh "docker tag $DOCKER_IMAGE $ecrRepo:latest"
+                sh "docker push $ecrRepo:latest"
+            }
+        }
+    }
+}
 
         stage('Deploy (Placeholder)') {
             steps {
