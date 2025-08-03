@@ -15,6 +15,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    sh 'echo "--- Listing files inside ./app ---" && ls -l ./app'
                     sh 'docker build -t $DOCKER_IMAGE ./app'
                 }
             }
@@ -23,14 +24,14 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 script {
-                    sh 'docker run --rm $DOCKER_IMAGE python3 -m unittest discover -s tests'
+                    sh 'docker run --rm -v "$PWD/app:/app" -w /app $DOCKER_IMAGE python3 -m unittest discover -s tests'
                 }
             }
         }
 
         stage('Push to DockerHub (Optional)') {
             when {
-                expression { return false } // Change to true when ready
+                expression { return false }
             }
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
