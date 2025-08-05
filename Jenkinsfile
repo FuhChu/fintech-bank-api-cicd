@@ -3,6 +3,8 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'fintech-api'
+        ECR_REGISTRY = "911167893459.dkr.ecr.us-east-1.amazonaws.com"
+        ECR_REPOSITORY = "${ECR_REGISTRY}/fintech-api-ecr"
     }
 
     stages {
@@ -32,14 +34,13 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 withCredentials([
-                    string(credentialsId: 'ecr-login-script', variable: 'ECR_LOGIN_SCRIPT'),
+                    string(credentialsId: 'ecr-login-script', variable: 'ECR_LOGIN_PASSWORD'),
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                 ]) {
                     script {
-                        sh ECR_LOGIN_SCRIPT
-                        def ecrRepo = "911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr"
-                        sh "docker tag $DOCKER_IMAGE $ecrRepo:latest"
-                        sh "docker push $ecrRepo:latest"
+                        sh "docker login --username AWS --password ${ECR_LOGIN_PASSWORD} ${ECR_REGISTRY}"
+                        sh "docker tag $DOCKER_IMAGE ${ECR_REPOSITORY}:latest"
+                        sh "docker push ${ECR_REPOSITORY}:latest"
                     }
                 }
             }
@@ -56,16 +57,16 @@ pipeline {
                         // This is more robust than a single, chained command.
                         sh """
                             # Login to ECR on the remote host using the password from the Jenkins agent
-                            docker login --username AWS --password-stdin 911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr <<< ${ecrPassword}
+                            docker login --username AWS --password-stdin ${ECR_REGISTRY} <<< ${ecrPassword}
 
                             # Pull the latest image
-                            docker pull 911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr/fintech-api:latest
+                            docker pull ${ECR_REPOSITORY}:latest
 
                             # Stop and remove the old container, ignoring any errors if it doesn't exist
                             docker rm -f fintech-api || true
 
                             # Run the new container, mapping host port 3000 to container port 5000
-                            docker run -d --name fintech-api -p 3000:5000 911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr/fintech-api:latest
+                            docker run -d --name fintech-api -p 3000:5000 ${ECR_REPOSITORY}:latest
                         """
                     }
                 }
