@@ -37,7 +37,7 @@ pipeline {
                 ]) {
                     script {
                         sh(ECR_LOGIN_SCRIPT)
-                        def ecrRepo = "381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api"
+                        def ecrRepo = "911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr"
                         sh "docker tag $DOCKER_IMAGE $ecrRepo:latest"
                         sh "docker push $ecrRepo:latest"
                     }
@@ -55,17 +55,17 @@ pipeline {
                     // This is more robust than a single, chained command.
                     sh """
                         # Login to ECR on the remote host using the password from the Jenkins agent
-                        docker login --username AWS --password-stdin 381491832980.dkr.ecr.us-east-1.amazonaws.com <<< ${ecrPassword}
+                        docker login --username AWS --password-stdin 911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr <<< ${ecrPassword}
 
                         # Pull the latest image
-                        docker pull 381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest
+                        docker pull 911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr/fintech-api:latest
 
                         # Stop and remove the old container, ignoring any errors if it doesn't exist
                         docker rm -f fintech-api || true
 
                         # Run the new container, mapping host port 3000 to container port 5000
                         docker run -d --name fintech-api -p 3000:5000 \\
-                        381491832980.dkr.ecr.us-east-1.amazonaws.com/fintech-api:latest
+                        911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr/fintech-api:latest
                     """
                 }
             }
