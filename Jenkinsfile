@@ -36,7 +36,7 @@ pipeline {
                     [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']
                 ]) {
                     script {
-                        sh(ECR_LOGIN_SCRIPT)
+                        sh ECR_LOGIN_SCRIPT
                         def ecrRepo = "911167893459.dkr.ecr.us-east-1.amazonaws.com/fintech-api-ecr"
                         sh "docker tag $DOCKER_IMAGE $ecrRepo:latest"
                         sh "docker push $ecrRepo:latest"
